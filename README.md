@@ -16,7 +16,6 @@ I wrote this project just for fun and for learning purposes. I'm a 12-year-old a
 ## Installation
 You can compile and install it with a single flag:
 
-`bash
 gcc -O3 main.c -o tiny-mgr
 ./tiny-mgr --install
 
@@ -29,5 +28,6 @@ Now you can just type tiny-mgr anywhere in your terminal!
 
 ## Disclaimer
 This is a learning project. Since Linux is vast and hardware varies, some sensors might behave differently depending on your setup. It's not meant to replace htop, but it sure looks cooler in a minimalist setup!
+
 
 Made with ☕ and curiosity by a 12-year-old coder.
