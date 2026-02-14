@@ -16,8 +16,10 @@ I wrote this project just for fun and for learning purposes. I'm a 12-year-old a
 ## Installation
 You can compile and install it with a single flag:
 
+```bash
 gcc -O3 main.c -o tiny-mgr
 ./tiny-mgr --install
+```
 
 Now you can just type tiny-mgr anywhere in your terminal!
 
@@ -31,3 +33,4 @@ This is a learning project. Since Linux is vast and hardware varies, some sensor
 
 
 Made with ☕ and curiosity by a 12-year-old coder.
+
