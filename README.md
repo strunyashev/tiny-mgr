@@ -6,12 +6,14 @@ A lightweight, "clean-code" system monitor for Linux written in pure C.
 I wrote this project just for fun and for learning purposes. I'm a 12-year-old aspiring developer exploring the depths of Linux and the C language. I wanted to see if I could build a working system utility that talks directly to the kernel without being bloated.
 
 ## Features
-- **CPU Temperature**: Real-time thermal monitoring.
-- **GPU Temperature**: Support for NVIDIA cards via nvidia-smi.
+- **CPU Usage**: Dynamic calculation of processor load by parsing /proc/stat.
+- **GPU Usage**: Real-time utilization tracking for NVIDIA cards.
+- **Thermal Monitoring**: Instant CPU/GPU temperature readings with color-coded alerts (Red/Green).
 - **Memory Usage**: Visual progress bar for RAM.
 - **Disk Health**: Quick look at your root partition usage.
 - **Network Speeds**: Live Download/Upload tracking (KB/s).
 - **Zero Bloat**: No heavy libraries, just pure C and ANSI escape codes.
+- **ANSI UI**: Minimalist, flicker-free interface using escape sequences.
 
 ## Installation
 You can compile and install it with a single flag:
@@ -33,4 +35,3 @@ This is a learning project. Since Linux is vast and hardware varies, some sensor
 
 
 Made with ☕ and curiosity by a 12-year-old coder.
-
