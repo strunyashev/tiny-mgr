@@ -12,7 +12,7 @@
 
 void draw_bar(char *name, float p) {
     int i, f = (int)(20 * (p / 100.0));
-    printf("%-10s [", name);
+    printf("%-12s [", name);
     for (i = 0; i < 20; i++) {
         if (i < f) printf("#");
         else printf("-");
@@ -29,6 +29,8 @@ int main(int argc, char **argv) {
     }
 
     unsigned long long rx, tx, old_rx = 0, old_tx = 0;
+    unsigned long long lu, ln, ls, li, lio, lirq, lsi;
+    int init_cpu = 1;
     char buf[256];
     
     printf(H_CUR CLS);
@@ -36,18 +38,45 @@ int main(int argc, char **argv) {
     while (1) {
         printf("\e[H" CYAN "--- [ TINY-MGR ] ---\n" RESET);
 
-        FILE *f = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
+        FILE *f = fopen("/proc/stat", "r");
+        if (f) {
+            unsigned long long u, n, s, id, io, irq, si, st, g, gn;
+            fscanf(f, "cpu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu",
+                   &u, &n, &s, &id, &io, &irq, &si, &st, &g, &gn);
+            fclose(f);
+
+            if (!init_cpu) {
+                unsigned long long p_id = li + lio;
+                unsigned long long c_id = id + io;
+                unsigned long long p_ni = lu + ln + ls + lirq + lsi;
+                unsigned long long c_ni = u + n + s + irq + si;
+                unsigned long long p_tot = p_id + p_ni;
+                unsigned long long c_tot = c_id + c_ni;
+
+                if (c_tot > p_tot) {
+                    float cpu_p = (float)(c_tot - p_tot - (c_id - p_id)) / (c_tot - p_tot) * 100.0;
+                    draw_bar("CPU USAGE:", cpu_p);
+                }
+            }
+            lu = u; ln = n; ls = s; li = id; lio = io; lirq = irq; lsi = si;
+            init_cpu = 0;
+        }
+
+        f = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
         if (f) {
             int t; fscanf(f, "%d", &t); fclose(f);
             float c = t / 1000.0;
-            printf("CPU TEMP:  %s%.1f°C" RESET "\n", (c > 65 ? RED : GREEN), c);
+            printf("CPU TEMP:    %s%.1f°C" RESET "\n", (c > 65 ? RED : GREEN), c);
         }
 
-        f = popen("nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null", "r");
+        f = popen("nvidia-smi --query-gpu=temperature.gpu,utilization.gpu --format=csv,noheader,nounits 2>/dev/null", "r");
         if (f) {
-            if (fgets(buf, 10, f)) {
-                float gt = atof(buf);
-                printf("GPU TEMP:  %s%.1f°C" RESET "\n", (gt > 70 ? RED : GREEN), gt);
+            if (fgets(buf, 50, f)) {
+                float gt, gu;
+                if (sscanf(buf, "%f, %f", &gt, &gu) == 2) {
+                    printf("GPU TEMP:    %s%.1f°C" RESET "\n", (gt > 70 ? RED : GREEN), gt);
+                    draw_bar("GPU USAGE:", gu);
+                }
             }
             pclose(f);
         }
@@ -70,23 +99,21 @@ int main(int argc, char **argv) {
 
         f = fopen("/proc/net/dev", "r");
         if (f) {
-            unsigned long long rb_now = 0, tb_now = 0, rb, tb;
+            unsigned long long rb_n = 0, tb_n = 0, rb, tb;
             fgets(buf, 256, f); fgets(buf, 256, f);
             while (fgets(buf, 256, f)) {
                 if (strstr(buf, "lo:")) continue;
                 char *delim = strchr(buf, ':');
                 if (delim) {
                     sscanf(delim + 1, "%llu %*u %*u %*u %*u %*u %*u %*u %llu", &rb, &tb);
-                    rb_now += rb; tb_now += tb;
-                }
+                    rb_n += rb; tb_n += tb;}
             }
             fclose(f);
-
             if (old_rx > 0) {
-                printf("DOWN:      " GREEN "%.2f KB/s" RESET "\n", (rb_now - old_rx) / 1024.0);
-                printf("UP:        " CYAN "%.2f KB/s" RESET "\n", (tb_now - old_tx) / 1024.0);
+                printf("NET DOWN:    " GREEN "%.2f KB/s" RESET "\n", (rb_n - old_rx) / 1024.0);
+                printf("NET UP:      " CYAN "%.2f KB/s" RESET "\n", (tb_n - old_tx) / 1024.0);
             }
-            old_rx = rb_now; old_tx = tb_now;
+            old_rx = rb_n; old_tx = tb_n;
         }
 
         printf(CYAN "--------------------\n" RESET);
